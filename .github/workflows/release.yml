@@ -1,0 +1,126 @@
+name: Scheduled Release
+
+on:
+  schedule:
+    # Runs on the 1st, 16th (and 31st) of each month at 00:00 UTC.
+    # Scheduled workflows run on the default branch only and may be
+    # delayed/dropped by GitHub; use workflow_dispatch to release manually.
+    - cron: "0 0 */15 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Gate on tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check src/ tests/ examples/
+
+      - name: Test (pytest)
+        run: pytest tests/
+
+  release:
+    name: Auto release (if changes)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Detect changes since last release
+        id: detect
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          echo "last-tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tag; releasing."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$LAST_TAG..HEAD" -- src/ pyproject.toml README.md tests/ examples/; then
+            echo "No source changes since $LAST_TAG; skipping release."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Source changes since $LAST_TAG; releasing."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip (no changes)
+        if: steps.detect.outputs.changed == 'false'
+        run: 'echo "Skipping release: nothing to do."'
+
+      - name: Bump patch version
+        if: steps.detect.outputs.changed == 'true'
+        id: bump
+        run: |
+          NEW_VERSION=$(python - <<'EOF'
+          import re
+          from datetime import date
+          from pathlib import Path
+
+          pyproject = Path("pyproject.toml")
+          init = Path("src/intent_alignment/__init__.py")
+
+          text = pyproject.read_text()
+          current = re.search(r'version\s*=\s*"([^"]+)"', text).group(1)
+          major, minor, patch = map(int, current.split("."))
+          new = f"{major}.{minor}.{patch + 1}"
+
+          pyproject.write_text(re.sub(r'(version\s*=\s*")[^"]+(")', rf'\g<1>{new}\g<2>', text))
+          init.write_text(re.sub(r'(__version__\s*=\s*")[^"]+(")', rf'\g<1>{new}\g<2>', init.read_text()))
+
+          changelog = Path("CHANGELOG.md")
+          content = changelog.read_text()
+          entry = (
+              f"\n## [{new}] - {date.today().isoformat()}\n\n"
+              "### Added\n\n"
+              "- Automatically released via the scheduled release workflow.\n"
+          )
+          changelog.write_text(content.replace("## [Unreleased]", "## [Unreleased]" + entry, 1))
+          print(new)
+          EOF
+          )
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        if: steps.detect.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml src/intent_alignment/__init__.py CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.bump.outputs.version }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Tag and push
+        if: steps.detect.outputs.changed == 'true'
+        run: |
+          git tag "v${{ steps.bump.outputs.version }}"
+          git push origin "v${{ steps.bump.outputs.version }}"
+
+      - name: Create GitHub release
+        if: steps.detect.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.bump.outputs.version }}" \
+            --generate-notes \
+            --title "v${{ steps.bump.outputs.version }}" \
+            --repo "${{ github.repository }}"

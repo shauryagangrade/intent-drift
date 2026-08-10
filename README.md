@@ -1,5 +1,9 @@
 # Intent Alignment Engine
 
+[![PyPI version](https://img.shields.io/pypi/v/intent-drift.svg)](https://pypi.org/project/intent-drift/)
+[![Python versions](https://img.shields.io/pypi/pyversions/intent-drift.svg)](https://pypi.org/project/intent-drift/)
+[![License](https://img.shields.io/pypi/l/intent-drift.svg)](https://github.com/shauryagangrade/intent-drift/blob/main/LICENSE)
+
 A production-quality, open-source Python library that helps AI coding agents detect and prevent intent drift during development sessions.
 
 ## 🎯 Vision
@@ -135,6 +139,16 @@ See the [docs/](docs/) directory for:
 - [Public API Reference](docs/api.md)
 - [Extending the Engine](docs/extending.md)
 - [Contributing Guidelines](CONTRIBUTING.md)
+
+## 🚀 Releasing
+
+Releases are published automatically from git tags via GitHub Actions.
+
+1. Bump the `version` in [`pyproject.toml`](pyproject.toml) and add an entry to the [CHANGELOG](CHANGELOG.md).
+2. For pre-releases (published to TestPyPI): tag `vX.Y.Z-rc.N`, e.g. `git tag v0.2.0-rc.1`.
+3. For stable releases (published to PyPI): tag `vX.Y.Z`, e.g. `git tag v0.2.0 && git push origin v0.2.0`.
+
+Pre-release tags (`vX.Y.Z-*`) go to [TestPyPI](https://test.pypi.org/project/intent-drift/); stable tags go to [PyPI](https://pypi.org/project/intent-drift/).
 
 ## 🤝 Contributing
 

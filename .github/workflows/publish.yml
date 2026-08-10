@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/intent-alignment-engine
+      url: https://pypi.org/p/intent-drift
     steps:
       - uses: actions/checkout@v4
 

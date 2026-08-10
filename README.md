@@ -19,7 +19,7 @@ AI coding agents frequently begin working toward the correct objective, but grad
 ## 📦 Installation
 
 ```bash
-pip install intent-alignment-engine
+pip install intent-drift
 ```
 
 ## 🚀 Quick Start
@@ -89,7 +89,7 @@ Pause and confirm whether startup optimization was intentional before continuing
 ## 🏗️ Architecture
 
 ```
-intent-alignment-engine/
+intent-drift/
 ├── src/
 │   └── intent_alignment/
 │       ├── __init__.py

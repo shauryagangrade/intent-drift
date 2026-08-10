@@ -12,7 +12,7 @@ permissions:
 jobs:
   publish-test:
     name: Build and publish to TestPyPI
-    if: ${{ contains(github.ref_name, '-') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     environment:
       name: pypi-test

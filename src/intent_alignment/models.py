@@ -29,7 +29,7 @@ class AlignmentReport:
     overall_alignment: float
     confidence: float
     status: str  # 'Fully_Aligned', 'Minor_Drift', etc.
-    breakdown: dict[str, dict]
+    breakdown: dict[str, "ScoreComponent"]
     summary: str
     evidence: list[Evidence]
     risk: str

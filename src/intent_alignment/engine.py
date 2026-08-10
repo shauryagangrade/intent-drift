@@ -7,7 +7,7 @@ from .models import AlignmentContext, AlignmentReport
 class IntentAlignmentEngine:
     """Main engine for intent alignment analysis."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the engine with default evidence providers."""
         self.providers: list[EvidenceProvider] = []
         self._register_default_providers()

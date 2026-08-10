@@ -1,163 +1,79 @@
-# Intent Alignment Engine
+# intent-drift
 
 [![PyPI version](https://img.shields.io/pypi/v/intent-drift.svg)](https://pypi.org/project/intent-drift/)
 [![Python versions](https://img.shields.io/pypi/pyversions/intent-drift.svg)](https://pypi.org/project/intent-drift/)
 [![License](https://img.shields.io/pypi/l/intent-drift.svg)](https://github.com/shauryagangrade/intent-drift/blob/main/LICENSE)
 
-A production-quality, open-source Python library that helps AI coding agents detect and prevent intent drift during development sessions.
+Dependency-free Python library that detects **intent drift** in AI-assisted development: it compares the original goal against the current plan and execution activity, and returns an explainable alignment report.
 
-## 🎯 Vision
-
-AI coding agents frequently begin working toward the correct objective, but gradually shift toward solving a different problem. This engine acts as an independent "second opinion" that continuously evaluates whether the current work remains aligned with the original request.
-
-## 🔧 Features
-
-- **Evidence-Based Reasoning**: Evaluates multiple independent forms of evidence rather than simple similarity scoring
-- **Explainable Assessments**: Every conclusion is traceable to specific evidence points
-- **Pluggable Architecture**: Easy to extend with new evidence providers
-- **Timeline Tracking**: Monitor alignment drift over time
-- **Framework Agnostic**: Works with any AI coding agent (Claude Code, Codex, Gemini, etc.)
-- **Type Safe**: Full type hints with Pydantic models and dataclasses
-- **Well Tested**: Comprehensive unit and integration tests
-
-## 📦 Installation
+## Install
 
 ```bash
-pip install intent-drift
+pip install intent-drift   # Python >= 3.10
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```python
 from intent_alignment import IntentAlignmentEngine
-from intent_alignment.models import AlignmentContext
 
 engine = IntentAlignmentEngine()
 
-context = AlignmentContext(
-    original_goal="Reduce the application's memory usage.",
-    current_plan="Optimizing startup latency for faster initialization.",
-    execution_context={
-        "edited_files": ["main.py", "startup.py"],
-        "git_diff": "+ def optimize_startup():\n+     # ... startup optimizations\n",
-        "recent_commands": ["pip install numpy", "python -m profiler"],
-        "reasoning_summary": "Focusing on startup performance improvements"
-    }
-)
+context = {
+    "original_goal": {
+        "text": "Reduce the application's memory usage.",
+        "constraints": ["Stay under 100MB RAM"],
+        "success_criteria": ["Peak memory < 50MB"],
+    },
+    "current_plan": {
+        "summary": "Optimizing startup initialization for faster load.",
+        "steps": ["Profile initialization", "Optimize startup sequence"],
+    },
+    "execution_context": {
+        "edited_files": ["startup.py"],
+        "git_diff": "+ def optimize_startup(): ...",
+        "recent_messages": ["Working on startup optimization"],
+        "reasoning_summary": "Focusing on startup performance",
+    },
+}
 
 report = engine.evaluate(context)
-
-print(f"Overall Alignment: {report.overall_alignment}%")
-print(f"Status: {report.status}")
-print(f"Confidence: {report.confidence}%")
-print(f"Recommendation: {report.recommendation}")
+print(report.overall_alignment)  # 0-100
+print(report.status)             # e.g. "Moderate_Drift"
+print(report.confidence)         # 0-100
+print(report.recommendation)
 ```
 
-## 📊 Example Output
+`evaluate()` accepts a plain dict or an `AlignmentContext` dataclass. Use `intent_alignment.report.render_report(report)` to render the full text report (evidence, risk, and per-provider breakdown).
+
+## How It Works
+
+The engine runs the context through pluggable **evidence providers** — goal alignment, constraints, scope, architecture, execution, file graph, dependencies, requirement coverage, and problematic findings. Each emits weighted evidence that is aggregated into an overall alignment score, confidence, status, and recommendation. No external NLP dependencies: matching is transparent token/alias-based, so every score is traceable to specific input text.
+
+## Extending
+
+Implement `EvidenceProvider` (`collect(context) -> list[Evidence]`) and register it with `engine.add_provider(provider)`.
+
+## Layout
 
 ```
-Intent Alignment Report
-
-Overall Alignment
-68%
-
-Status
-Moderate Drift
-
-Confidence
-89%
-
-Original Goal
-Reduce the application's memory usage.
-
-Current Goal
-Optimize startup initialization.
-
-Summary
-The current work has gradually shifted toward startup performance rather than runtime memory reduction.
-
-Evidence
-✓ Goal partially overlaps
-✓ Constraints remain satisfied
-⚠ Edited files primarily affect startup logic
-⚠ Current implementation no longer targets memory allocation
-⚠ Dependency changes favor performance over memory optimization
-
-Risk
-Additional work is unlikely to improve runtime memory usage.
-
-Recommendation
-Pause and confirm whether startup optimization was intentional before continuing.
+src/intent_alignment/
+├── engine.py     # IntentAlignmentEngine, provider registration
+├── models.py     # AlignmentContext, AlignmentReport, Evidence, ScoreComponent
+├── scoring.py    # Weighted aggregation of provider evidence
+├── report.py     # render_report() -> human-readable text
+├── utils.py      # Status, confidence, summary, risk, recommendation
+└── evidence/     # EvidenceProvider base + 9 providers + shared analysis helpers
+tests/            # Unit and integration test suite
+examples/         # example_usage.py
 ```
 
-## 🏗️ Architecture
-
-```
-intent-drift/
-├── src/
-│   └── intent_alignment/
-│       ├── __init__.py
-│       ├── engine.py              # Main engine class
-│       ├── models.py              # Data models (Pydantic/dataclasses)
-│       ├── parser.py              # Context parsing utilities
-│       ├── evidence/              # Evidence provider implementations
-│       │   ├── __init__.py
-│       │   ├── base.py            # Abstract EvidenceProvider
-│       │   ├── goal_provider.py
-│       │   ├── constraint_provider.py
-│       │   ├── scope_provider.py
-│       │   ├── file_graph_provider.py
-│       │   ├── dependency_provider.py
-│       │   ├── architecture_provider.py
-│       │   ├── plan_provider.py
-│       │   └── execution_provider.py
-│       ├── scoring.py             # Evidence scoring and aggregation
-│       ├── report.py              # Report generation
-│       └── api.py                 # Public API interface
-├── tests/
-│   ├── unit/
-│   └── integration/
-├── examples/
-├── docs/
-├── pyproject.toml
-└── LICENSE
-```
-
-## 🧪 Testing
-
-Run the test suite:
+## Development
 
 ```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
 pytest tests/
 ```
 
-## 📚 Documentation
-
-See the [docs/](docs/) directory for:
-- [Architecture Overview](docs/architecture.md)
-- [Evidence Providers](docs/evidence_providers.md)
-- [Public API Reference](docs/api.md)
-- [Extending the Engine](docs/extending.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-
-## 🚀 Releasing
-
-Releases are published automatically from git tags via GitHub Actions.
-
-1. Bump the `version` in [`pyproject.toml`](pyproject.toml) and add an entry to the [CHANGELOG](CHANGELOG.md).
-2. For pre-releases (published to TestPyPI): tag `vX.Y.Z-rc.N`, e.g. `git tag v0.2.0-rc.1`.
-3. For stable releases (published to PyPI): tag `vX.Y.Z`, e.g. `git tag v0.2.0 && git push origin v0.2.0`.
-
-Pre-release tags (`vX.Y.Z-*`) go to [TestPyPI](https://test.pypi.org/project/intent-drift/); stable tags go to [PyPI](https://pypi.org/project/intent-drift/).
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-Inspired by the challenges of intent drift in AI-assisted development and the need for transparent, explainable alignment checking mechanisms.
+See [CHANGELOG.md](CHANGELOG.md) for releases. License: [MIT](LICENSE).

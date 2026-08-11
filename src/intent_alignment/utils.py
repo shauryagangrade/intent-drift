@@ -2,6 +2,16 @@
 
 from .models import Evidence, ScoreComponent
 
+# Weights for combining the three confidence factors in compute_confidence.
+# Average confidence dominates the score, consistency is next most important,
+# and source diversity contributes the least.
+_AVG_CONFIDENCE_WEIGHT = 0.5
+_CONSISTENCY_WEIGHT = 0.3
+_DIVERSITY_WEIGHT = 0.2
+
+# Scales the raw variance into a 0-1 penalty range for the consistency factor.
+_VARIANCE_SCALE = 2.0
+
 
 def compute_confidence(evidence_list: list[Evidence]) -> float:
     """
@@ -26,7 +36,7 @@ def compute_confidence(evidence_list: list[Evidence]) -> float:
     if len(values) > 1:
         mean_val = sum(values) / len(values)
         variance = sum((v - mean_val) ** 2 for v in values) / len(values)
-        consistency = max(0.0, 1.0 - (variance * 2))  # Scale variance to 0-1
+        consistency = max(0.0, 1.0 - (variance * _VARIANCE_SCALE))  # Scale variance to 0-1
     else:
         consistency = 1.0
 
@@ -34,8 +44,12 @@ def compute_confidence(evidence_list: list[Evidence]) -> float:
     unique_sources = len({e.source for e in evidence_list})
     diversity_factor = min(1.0, unique_sources / 9.0)  # Max 9 providers
 
-    # Combine factors
-    combined = (avg_confidence * 0.5) + (consistency * 0.3) + (diversity_factor * 0.2)
+    # Combine factors: confidence dominates, consistency next, diversity least
+    combined = (
+        (avg_confidence * _AVG_CONFIDENCE_WEIGHT)
+        + (consistency * _CONSISTENCY_WEIGHT)
+        + (diversity_factor * _DIVERSITY_WEIGHT)
+    )
 
     return round(combined * 100, 1)
 

@@ -2,81 +2,53 @@
 
 import importlib
 
+import pytest
 
-def test_models_all_exports():
-    module = importlib.import_module("intent_alignment.models")
-    assert hasattr(module, "__all__")
-    expected = ["AlignmentContext", "AlignmentReport", "Evidence", "ScoreComponent"]
-    assert sorted(module.__all__) == sorted(expected)
-    for name in expected:
-        assert hasattr(module, name)
-
-
-def test_utils_all_exports():
-    module = importlib.import_module("intent_alignment.utils")
-    assert hasattr(module, "__all__")
-    expected = [
-        "compute_confidence",
-        "determine_status",
-        "generate_summary",
-        "generate_risk_assessment",
-        "generate_recommendation",
-    ]
-    assert sorted(module.__all__) == sorted(expected)
-    for name in expected:
-        assert hasattr(module, name)
-
-
-def test_scoring_all_exports():
-    module = importlib.import_module("intent_alignment.scoring")
-    assert hasattr(module, "__all__")
-    expected = ["compute_weighted_score", "aggregate_scores"]
-    assert sorted(module.__all__) == sorted(expected)
-    for name in expected:
-        assert hasattr(module, name)
-
-
-def test_report_all_exports():
-    module = importlib.import_module("intent_alignment.report")
-    assert hasattr(module, "__all__")
-    expected = ["render_report"]
-    assert sorted(module.__all__) == sorted(expected)
-    for name in expected:
-        assert hasattr(module, name)
+MODULE_EXPORTS = [
+    (
+        "intent_alignment.models",
+        ["AlignmentContext", "AlignmentReport", "Evidence", "ScoreComponent"],
+    ),
+    (
+        "intent_alignment.utils",
+        [
+            "compute_confidence",
+            "determine_status",
+            "generate_summary",
+            "generate_risk_assessment",
+            "generate_recommendation",
+        ],
+    ),
+    (
+        "intent_alignment.scoring",
+        ["compute_weighted_score", "aggregate_scores"],
+    ),
+    ("intent_alignment.report", ["render_report"]),
+    ("intent_alignment.evidence.base", ["EvidenceProvider"]),
+    (
+        "intent_alignment.evidence.analysis",
+        [
+            "tokenize",
+            "keyword_overlap",
+            "term_frequency",
+            "salient_tokens",
+            "topic_alignment",
+            "get_text",
+            "get_list",
+            "is_empty",
+            "parse_git_diff",
+        ],
+    ),
+    ("intent_alignment.engine", ["IntentAlignmentEngine"]),
+]
 
 
-def test_evidence_base_all_exports():
-    module = importlib.import_module("intent_alignment.evidence.base")
-    assert hasattr(module, "__all__")
-    expected = ["EvidenceProvider"]
-    assert sorted(module.__all__) == sorted(expected)
-    for name in expected:
-        assert hasattr(module, name)
+@pytest.mark.parametrize(("module_name", "expected"), MODULE_EXPORTS)
+def test_all_exports(module_name: str, expected: list[str]) -> None:
+    module = importlib.import_module(module_name)
+    assert set(module.__all__) == set(expected)
 
-
-def test_evidence_analysis_all_exports():
-    module = importlib.import_module("intent_alignment.evidence.analysis")
-    assert hasattr(module, "__all__")
-    expected = [
-        "tokenize",
-        "keyword_overlap",
-        "term_frequency",
-        "salient_tokens",
-        "topic_alignment",
-        "get_text",
-        "get_list",
-        "is_empty",
-        "parse_git_diff",
-    ]
-    assert sorted(module.__all__) == sorted(expected)
-    for name in expected:
-        assert hasattr(module, name)
-
-
-def test_engine_all_exports():
-    module = importlib.import_module("intent_alignment.engine")
-    assert hasattr(module, "__all__")
-    expected = ["IntentAlignmentEngine"]
-    assert sorted(module.__all__) == sorted(expected)
-    for name in expected:
-        assert hasattr(module, name)
+    namespace: dict[str, object] = {}
+    exec(f"from {module_name} import *", namespace)
+    namespace.pop("__builtins__", None)
+    assert set(namespace) == set(expected)

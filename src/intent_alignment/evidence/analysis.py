@@ -14,6 +14,18 @@ beyond "memory".
 
 from typing import Any
 
+__all__ = [
+    "tokenize",
+    "keyword_overlap",
+    "term_frequency",
+    "salient_tokens",
+    "topic_alignment",
+    "get_text",
+    "get_list",
+    "is_empty",
+    "parse_git_diff",
+]
+
 # Words that carry no semantic weight for alignment comparison.
 _STOPWORDS: set[str] = {
     "the",

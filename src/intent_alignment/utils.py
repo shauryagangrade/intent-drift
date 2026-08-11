@@ -2,13 +2,20 @@
 
 from .models import Evidence, ScoreComponent
 
+__all__ = [
+    "compute_confidence",
+    "determine_status",
+    "generate_summary",
+    "generate_risk_assessment",
+    "generate_recommendation",
+]
+
 # Weights for combining the three confidence factors in compute_confidence.
 # Average confidence dominates the score, consistency is next most important,
 # and source diversity contributes the least.
 _AVG_CONFIDENCE_WEIGHT = 0.5
 _CONSISTENCY_WEIGHT = 0.3
 _DIVERSITY_WEIGHT = 0.2
-
 # Scales the raw variance into a 0-1 penalty range for the consistency factor.
 _VARIANCE_SCALE = 2.0
 

@@ -2,6 +2,10 @@
 
 from .models import AlignmentReport
 
+__all__ = [
+    "render_report",
+]
+
 
 def render_report(report: AlignmentReport) -> str:
     """

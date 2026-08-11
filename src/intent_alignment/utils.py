@@ -2,6 +2,14 @@
 
 from .models import Evidence, ScoreComponent
 
+__all__ = [
+    "compute_confidence",
+    "determine_status",
+    "generate_summary",
+    "generate_risk_assessment",
+    "generate_recommendation",
+]
+
 
 def compute_confidence(evidence_list: list[Evidence]) -> float:
     """

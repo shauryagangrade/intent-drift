@@ -3,6 +3,10 @@ from typing import Any
 from .evidence import EvidenceProvider
 from .models import AlignmentContext, AlignmentReport
 
+__all__ = [
+    "IntentAlignmentEngine",
+]
+
 
 class IntentAlignmentEngine:
     """Main engine for intent alignment analysis."""

@@ -5,6 +5,11 @@ from collections import defaultdict
 from .evidence import EvidenceProvider
 from .models import Evidence, ScoreComponent
 
+__all__ = [
+    "compute_weighted_score",
+    "aggregate_scores",
+]
+
 
 def compute_weighted_score(
     evidence_list: list[Evidence], providers: list[EvidenceProvider]

@@ -86,7 +86,11 @@ jobs:
           major, minor, patch = map(int, current.split("."))
           new = f"{major}.{minor}.{patch + 1}"
 
-          pyproject.write_text(re.sub(r'(version\s*=\s*")[^"]+(")', rf'\g<1>{new}\g<2>', text))
+          pyproject.write_text(re.sub(
+              r'(?<![\w-])version\s*=\s*"([^"]+)"',
+              f'version = "{new}"',
+              text,
+          ))
           init.write_text(re.sub(r'(__version__\s*=\s*")[^"]+(")', rf'\g<1>{new}\g<2>', init.read_text()))
 
           changelog = Path("CHANGELOG.md")

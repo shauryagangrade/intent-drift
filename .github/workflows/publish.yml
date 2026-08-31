@@ -1,9 +1,7 @@
 name: Publish to PyPI
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -12,7 +10,6 @@ permissions:
 jobs:
   build-and-publish:
     name: Build and publish to PyPI
-    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     environment:
       name: pypi

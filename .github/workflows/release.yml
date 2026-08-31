@@ -37,6 +37,8 @@ jobs:
     name: Auto release (if changes)
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -124,3 +126,15 @@ jobs:
             --generate-notes \
             --title "v${{ steps.bump.outputs.version }}" \
             --repo "${{ github.repository }}"
+
+  publish-test:
+    name: Publish to TestPyPI
+    needs: [release]
+    if: needs.release.outputs.version != ''
+    uses: ./.github/workflows/publish-test.yml
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [release, publish-test]
+    if: needs.release.outputs.version != ''
+    uses: ./.github/workflows/publish.yml

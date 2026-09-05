@@ -34,6 +34,7 @@ MODULE_EXPORTS = [
             "salient_tokens",
             "topic_alignment",
             "get_text",
+            "get_section_text",
             "get_list",
             "is_empty",
             "parse_git_diff",

@@ -21,6 +21,7 @@ __all__ = [
     "salient_tokens",
     "topic_alignment",
     "get_text",
+    "get_section_text",
     "get_list",
     "is_empty",
     "parse_git_diff",
@@ -317,6 +318,30 @@ def get_text(context: dict[str, Any], key: str, default: str = "") -> str:
         section_data = context.get(section, {}) or {}
         if key in section_data and section_data[key] is not None:
             return _normalize(section_data[key])
+    return default
+
+
+def get_section_text(
+    context: dict[str, Any],
+    section: str,
+    *keys: str,
+    default: str = "",
+) -> str:
+    """Return the first usable free-text field found in a single context section.
+
+    ``section`` is one of the context sections ("original_goal",
+    "current_plan", "execution_context"). If no key aliases are passed, the
+    canonical set ("text", "summary", "description", "plan", "goal", "body")
+    is tried in order. This lets a plain ``{"text": ...}`` plan produced by
+    the CLI satisfy providers that would otherwise only look for a
+    "summary"/"plan" field.
+    """
+    section_data = context.get(section, {}) or {}
+    keys = keys or ("text", "summary", "description", "plan", "goal", "body")
+    for key in keys:
+        value = section_data.get(key)
+        if value:
+            return _normalize(value)
     return default
 
 

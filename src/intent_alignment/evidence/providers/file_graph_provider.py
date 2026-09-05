@@ -1,6 +1,7 @@
 from ...models import Evidence
 from ..analysis import (
     get_list,
+    get_section_text,
     get_text,
     is_empty,
     parse_git_diff,
@@ -39,7 +40,7 @@ class FileGraphProvider(EvidenceProvider):
             ]
 
         goal_text = get_text(context, "text") or get_text(context, "goal")
-        plan_summary = get_text(context, "summary") or get_text(context, "plan")
+        plan_summary = get_section_text(context, "current_plan")
         intent_text = f"{goal_text} {plan_summary}"
 
         edited_files = get_list(context, "edited_files")

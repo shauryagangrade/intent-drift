@@ -2,6 +2,7 @@ from ...models import Evidence
 from ..analysis import (
     _token_matches,
     get_list,
+    get_section_text,
     get_text,
     is_empty,
     salient_tokens,
@@ -54,7 +55,7 @@ class ConstraintProvider(EvidenceProvider):
             ]
 
         goal_text = get_text(context, "text") or get_text(context, "goal")
-        plan = get_text(context, "summary") or get_text(context, "plan")
+        plan = get_section_text(context, "current_plan")
         reasoning = get_text(context, "reasoning_summary")
         recent = " ".join(str(m) for m in get_list(context, "recent_messages"))
         combined = f"{plan} {reasoning} {recent}"

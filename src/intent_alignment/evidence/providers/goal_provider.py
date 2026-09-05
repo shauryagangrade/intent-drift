@@ -1,6 +1,7 @@
 from ...models import Evidence
 from ..analysis import (
     get_list,
+    get_section_text,
     get_text,
     is_empty,
     topic_alignment,
@@ -39,7 +40,7 @@ class GoalProvider(EvidenceProvider):
             ]
 
         goal_text = get_text(context, "text") or get_text(context, "goal")
-        plan_summary = get_text(context, "summary") or get_text(context, "plan")
+        plan_summary = get_section_text(context, "current_plan")
         recent_messages = get_list(context, "recent_messages")
         reasoning = get_text(context, "reasoning_summary")
         exec_text = f"{' '.join(str(m) for m in recent_messages)} {reasoning}"

@@ -3,7 +3,7 @@ from . import evidence as evidence_providers
 from .engine import IntentAlignmentEngine
 from .models import AlignmentContext, AlignmentReport, Evidence, ScoreComponent
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 __all__ = [
     "IntentAlignmentEngine",

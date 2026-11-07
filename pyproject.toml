@@ -139,3 +139,5 @@ exclude_lines = [
     "raise NotImplementedError",
     "if __name__ == .__main__.:"
 ]
+[tool.setuptools.package-data]
+intent_alignment = ["py.typed"]
